@@ -1,0 +1,6 @@
+.idea/
+/bkps_testes/*
+/dist/*
+/logs/*
+/GeradorIniciais.spec
+/templates/*

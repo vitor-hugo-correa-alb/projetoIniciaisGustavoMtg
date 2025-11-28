@@ -1,0 +1,7 @@
+# Dependências principais do projeto
+# Executar o arquivo : pip install -r requirements.txt
+customtkinter
+python-docx
+docxcompose
+lxml
+Pilloww

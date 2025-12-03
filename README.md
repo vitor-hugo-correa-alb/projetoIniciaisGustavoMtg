@@ -1,147 +1,148 @@
-# Gerador Iniciais — Guia de Instalação e Execução (para distribuição interna)
+# Gerador Iniciais — Guia de Instalação e Execução (versão para distribuição interna)
 
-Este documento descreve, de forma objetiva e profissional, como instalar e executar o aplicativo "Gerador Iniciais" nas máquinas dos colaboradores — tanto em Windows quanto em macOS. Siga as instruções do item adequado ao sistema operacional.
+Este documento descreve, de forma clara e objetiva, como distribuir e executar a aplicação "Gerador Iniciais" entre colaboradores da empresa.
 
-Visão geral
-- Propósito: aplicação desktop para gerar documentos .docx a partir de modelos e seleção de "Modelos de Pedido".
-- Estrutura esperada (quando distribuída):
-  - Windows: forneça o executável gerado e a pasta `templates/` junto ao executável.
-  - macOS: forneça o repositório (ou pacote) com a estrutura do projeto; o instalador cria um ambiente Python local e instala dependências.
+---  
+Índice rápido
+- Windows: executar o .exe fornecido.
+- macOS: executar dois scripts (instalador + runner) que criam um virtualenv e iniciam a aplicação.
+- Estrutura mínima esperada (sempre fornecer templates junto ao pacote).
 
-Importante: não misturar arquivos de um build com outra plataforma. O build do macOS deve ser preparado em um Mac; o executável Windows (.exe) é gerado via PyInstaller em ambiente Windows.
+---
 
-1) Distribuição e execução — Windows (usuário final / funcionários)
-Requisitos mínimos
-- Windows 10 ou superior.
-- O arquivo executável (por exemplo `GeradorIniciais.exe`) gerado pelo departamento de TI ou pela equipe de desenvolvimento.
-- A pasta `templates/` contendo:
+## 1 — Requisitos e estrutura de distribuição
+
+Requisitos mínimos (para ambos os sistemas)
+- Fornecer sempre a pasta `templates/` com:
   - `modelo_base.docx`
-  - `modelo_base_final.docx` (opcional)
-  - `modelos/` (subpasta com os .docx dos pedidos)
+  - `modelo_base_final.docx`
+  - `modelos/` (subpasta com .docx dos pedidos)
+- Ter instalado Word (Microsoft 365, Office 2019 ou superior) para abrir os documentos gerados.
+- O programa grava logs em `logs/logs.txt` no diretório base do pacote.
 
-Como preparar o pacote a ser entregue
-- Coloque o executável e a pasta `templates/` no mesmo diretório. Estrutura recomendada:
-  ```
-  GeradorIniciais.exe
+Estrutura recomendada quando for distribuir para um usuário:
+```
+package/
+  GeradorIniciais.exe        (Windows build)   <-- somente para Windows
+  src/                       (código-fonte quando for instalação em Mac)
   templates/
     modelo_base.docx
     modelo_base_final.docx
     modelos/
       pedido1.docx
-      pedido2.docx
       ...
-  ```
-- Inclua também o diretório `logs/` vazio se desejar (o aplicativo criará `logs/logs.txt` automaticamente se não existir).
+  mac/
+    installer.sh
+    requirements.txt
+  run_mac.sh
+  README.md
+```
 
-Como executar (usuário)
-- Abra o explorador de arquivos e dê duplo‑clique em `GeradorIniciais.exe`.
-- Alternativamente, execute via Prompt/PowerShell (útil para capturar mensagens de erro):
-  ```powershell
-  cd C:\caminho\para\app
-  .\GeradorIniciais.exe
-  ```
-Onde encontrar logs
-- O aplicativo cria/atualiza `logs/logs.txt` no mesmo diretório do executável. Peça esse arquivo ao usuário caso seja necessário investigar erros.
+---
 
-Observações para o departamento de TI
-- Se o app não iniciar por dupla-clique em algumas máquinas, peça ao usuário para executar pelo terminal para visualizar mensagens ou libere o executável via políticas de segurança.
-- Para distribuir por GPO/instalador interno, cuide de copiar também a pasta `templates/` para o diretório de instalação.
+## 2 — Instalação e execução (Windows — usuário final)
 
-2) Instalação e execução — macOS (procedimento para TI / administrador)
-Observação importante
-- O aplicatvo para macOS não é gerado a partir do Windows. Para funcionar corretamente, a instalação (criação do venv e instalação das dependências) deve ser feita em um Mac.
+Requisitos
+- Windows 10 ou superior.
+- O executável `GeradorIniciais.exe` fornecido pelo departamento de TI.
 
-Pré-requisitos no macOS
-- Python 3.10+ instalado (recomendável usar o instalador oficial em https://www.python.org ou Homebrew).
-- Xcode Command Line Tools (para compilar dependências nativas): execute
+Passos (usuário)
+1. Coloque `GeradorIniciais.exe` e a pasta `templates/` na mesma pasta.
+2. Execute o aplicativo por duplo‑clique ou via Prompt/PowerShell:
+   ```powershell
+   cd C:\caminho\para\package
+   .\GeradorIniciais.exe
+   ```
+
+Logs
+- Consulte `logs/logs.txt` no mesmo diretório para diagnóstico.
+
+---
+
+## 3 — Instalação e execução (macOS — administrador / TI)
+
+Visão geral
+- No macOS a distribuição consiste em fornecer os scripts `mac/installer.sh` e `run_mac.sh` junto com o código e a pasta `templates/`.  
+- O script `installer.sh` cria um virtualenv `.venv_mac` e instala as dependências listadas em `mac/requirements.txt`.  
+- O script `run_mac.sh` ativa esse virtualenv e executa a aplicação.
+
+Pré‑requisitos no Mac (sugerido)
+- Python 3.10+ (usar instalador oficial ou `brew install python`).
+- Xcode Command Line Tools (necessário para compilar algumas dependências nativas):
   ```bash
   xcode-select --install
   ```
-- (Opcional / recomendado) Homebrew para instalação de bibliotecas do sistema:
+- Homebrew (opcional, recomendado quando lxml/Pillow exigirem libs do sistema):
   ```bash
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   brew install libxml2 libxslt pkg-config zlib libjpeg
   ```
 
-Arquivos incluídos para facilitar a instalação
-- `mac/requirements.txt` — lista de dependências Python do projeto.
-- `mac/installer.sh` — script que cria um virtualenv em `.venv_mac` na raiz do projeto e instala as dependências.
-- `run_mac.sh` — script que ativa o virtualenv criado e executa o programa.
-
-Passo a passo (para o técnico)
-1. Copie todo o repositório para a máquina Mac, mantendo a estrutura:
-   ```
-   project-root/
-     src/
-     templates/
-     mac/
-       installer.sh
-       requirements.txt
-     run_mac.sh
-     ...
-   ```
+Passo a passo (TI / administrador)
+1. Copie o pacote para o Mac, preservando a estrutura (veja seção 1).
 2. Torne os scripts executáveis:
    ```bash
    chmod +x mac/installer.sh
    chmod +x run_mac.sh
    ```
-3. Execute o instalador (este passo cria `.venv_mac` na raiz do projeto):
+3. Execute o instalador (cria `.venv_mac` e instala dependências):
    ```bash
    ./mac/installer.sh
    ```
-   - Se a instalação falhar por causa de `lxml`/`Pillow`, siga as instruções exibidas pelo script:
-     - Instalar Xcode CLT: `xcode-select --install`
-     - Instalar bibliotecas via Homebrew (conforme mostrado no pré‑requisitos)
-     - Exportar flags de compilação (se necessário) e reinstalar requisitos:
-       ```bash
-       export LDFLAGS="-L/opt/homebrew/opt/libxml2/lib -L/opt/homebrew/opt/libxslt/lib"
-       export CPPFLAGS="-I/opt/homebrew/opt/libxml2/include -I/opt/homebrew/opt/libxslt/include"
-       pip install -r mac/requirements.txt
-       ```
-4. Execute o aplicativo:
-   - Script runner (recomendado):
-     ```bash
-     ./run_mac.sh
-     ```
-   - Ou manualmente (caso precise debugar):
+   - Se a instalação falhar por `lxml`/`Pillow`, seguir as instruções apresentadas pelo script (instalar Xcode CLT, dependências via Homebrew e exportar flags de compilação quando necessário).
+
+
+4. Execute a aplicação:
+   ```bash
+   ./run_mac.sh
+   ```
+   - Alternativamente (para depuração):
      ```bash
      source .venv_mac/bin/activate
      python -m src.main
      ```
 
-Onde encontrar logs
-- O aplicativo grava `logs/logs.txt` na raiz do projeto (mesmo local onde está `run_mac.sh`). Solicite este arquivo para diagnóstico.
+Logs
+- O aplicativo grava `logs/logs.txt` na raiz do projeto (mesmo local onde está `run_mac.sh`).
 
-3) Templates e arquivos necessários
-- O funcionamento correto depende da presença de modelos na pasta `templates/`. Verifique:
-  - `templates/modelo_base.docx` (arquivo principal)
-  - `templates/modelo_base_final.docx` (opcional; se existir, será anexado no final com numeração sequencial)
-  - `templates/modelos/*.docx` (cada modelo de pedido)
-- Atenção: nomes de arquivos não podem conter o caractere `'/'`. Caso precise representar uma barra visual no título, utilize o token `{{BARRA}}` no nome do arquivo; o aplicativo converterá `{{BARRA}}` para `/` ao inserir o nome no documento e na interface.
+Distribuição para usuários finais macOS
+- TI pode fornecer um arquivo compactado (.zip) contendo o pacote (src/, templates/, mac/ e scripts).  
+- Instruir o usuário técnico local (ou TI) a executar `mac/installer.sh` uma vez por máquina e `run_mac.sh` para iniciar.
 
-4) Segurança e permissões (Caso seja computador Empresarial com políticas rígidas)
-- No macOS, aplicativos não assinados aparecerão como "bloqueados" pelo Gatekeeper — abra o app com botão direito → Abrir, ou providencie assinatura/notarização via Apple Developer pela equipe de TI.
-- Em Windows, se houver políticas de segurança rígidas, valide a entrega do exe via mecanismos internos seguros (assinatura de código, distribuição por GPO, etc.).
+Importante
+- Não será fornecido um .app assinado; usuários veriam bloqueio do Gatekeeper se tentassem executar apps não assinados. A alternativa aprovada pela equipe é: executar via scripts (conforme acima) ou TI criar um .app e assinar/notarizar em ambiente Apple se desejar um fluxo sem intervenção do usuário.
 
-5) Troubleshooting (erros comuns)
-- Erro ao abrir o exe sem mensagens: execute via terminal/PowerShell para obter o traceback.
-- Falha na instalação de `lxml`/`Pillow` no mac: instale Xcode CLT e as bibliotecas nativas via Homebrew (ver seção macOS).
-- Módulo `docxcompose` ausente no exe: verifique se o executável foi gerado com o mesmo Python/venv usado para desenvolvimento e se os hooks do PyInstaller (pasta `hooks/`) foram incluídos.
-- Arquivos de template não localizados: verifique a localização da pasta `templates/` em relação ao executável (Windows) ou à raiz do projeto (mac).
+---
 
-6) Contato / suporte
-- Se encontrar problemas, ao reportar envie:
-  - Descrição do problema e passos para reproduzir.
-  - Conteúdo do arquivo de logs: `logs/logs.txt`.
-  - Versão do sistema operacional (Windows ou macOS) e arquitetura (Intel / Apple Silicon).
-  - Se aplicável, o traceback completo do erro exibido no console.
-- Para suporte interno: encaminhe ao responsável pelo projeto (equipe de TI / desenvolvedor) com as informações acima.
+## 4 — Tokens especiais e nomes de arquivos
 
-7) Versão e rastreabilidade
-- Inclua junto ao pacote a versão do software (por ex. nome do arquivo `GeradorIniciais_v1.0.exe` ou um arquivo `VERSION`) para controle de deployment.
+- Nomes de arquivos não podem conter o caractere `/`. Para exibir uma barra no título do documento, use o token `{{BARRA}}` no nome do arquivo (ex.: `Pedido{{BARRA}}A.docx`); o sistema converte `{{BARRA}}` em `/` ao montar os títulos no documento e na interface.
+- Evite caracteres especiais não suportados pelo sistema de arquivos do SO destino.
 
+---
 
+## 5 — Troubleshooting (resumo rápido)
 
-[//]: # (Fim do documento — pontos de ação recomendados)
-[//]: # (- Para distribuição ampla: equipe de TI deve preparar um instalador/unidade de distribuição &#40;Windows: instalador MSI / copiar exe + templates; macOS: criar app com PyInstaller e assinar&#41;.)
-[//]: # (- Se desejar, a equipe de desenvolvimento pode fornecer builds assinados &#40;Windows code signing / macOS Developer ID&#41; e/ou imagens de instalação &#40;MSI / DMG&#41;.)
+Erro ao instalar dependências no mac
+- Verifique Python e pip: `python3 --version` e `python3 -m pip --version`.
+- Instale Xcode CLT: `xcode-select --install`.
+- Instale libs via Homebrew e exporte flags se pip necessitar compilar:
+  ```bash
+  brew install libxml2 libxslt pkg-config zlib libjpeg
+  export LDFLAGS="-L/opt/homebrew/opt/libxml2/lib -L/opt/homebrew/opt/libxslt/lib"
+  export CPPFLAGS="-I/opt/homebrew/opt/libxml2/include -I/opt/homebrew/opt/libxslt/include"
+  pip install -r mac/requirements.txt
+  ```
+
+Aplicativo Windows não inicia ao duplo clique
+- Execute via Prompt para obter traceback:
+  ```powershell
+  cd C:\caminho\para\package
+  .\GeradorIniciais.exe
+  ```
+- Forneça `logs/logs.txt` para diagnóstico.
+
+Erros de import no exe (docxcompose, lxml)
+- Verifique que o exe foi gerado no mesmo Python/venv onde as dependências estavam instaladas; use hooks do PyInstaller para pacotes problemáticos.
+
+---

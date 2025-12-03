@@ -146,3 +146,5 @@ Erros de import no exe (docxcompose, lxml)
 - Verifique que o exe foi gerado no mesmo Python/venv onde as dependências estavam instaladas; use hooks do PyInstaller para pacotes problemáticos.
 
 ---
+
+[//]: # (Gerador do execultavel windowns -> pyinstaller --onefile --noconsole --name "GeradorIniciais" --additional-hooks-dir=hooks launcher.py)

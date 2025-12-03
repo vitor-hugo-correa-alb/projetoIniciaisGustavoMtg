@@ -4,4 +4,4 @@ customtkinter
 python-docx
 docxcompose
 lxml
-Pilloww
+Pillow
